@@ -5,6 +5,53 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0] - 2024-09-26
+
+### Added
+- **Major Refactoring**: Completely refactored main installation script (`setup.sh`) for better readability and maintainability
+- Added modular function structure to installation script with clear separation of concerns
+- Added comprehensive error handling and validation throughout installation process
+- Added progress indicators and improved user feedback during installation
+- Added system requirements validation (root check, virtualization check)
+- Added better domain configuration with input validation
+- Added installation time tracking and human-readable reporting
+- Added proper cleanup procedures for installation files
+
+### Changed
+- **Breaking Improvement**: Restructured `setup.sh` from 253 lines to organized, well-documented modular functions
+- Improved installation flow with clear step-by-step progress indicators
+- Enhanced error messages with actionable solutions for common issues
+- Better kernel headers installation handling with improved error recovery
+- Improved domain setup with better validation and user-friendly prompts
+- Enhanced logging system setup with proper error handling
+- Better package installation process with individual package validation
+- Improved user profile configuration for automatic menu loading
+
+### Technical Improvements
+- Added `set -euo pipefail` for better error handling and script safety
+- Integrated with existing `dev/lib/common.sh` library functions where possible
+- Added fallback color definitions when library is not available
+- Improved directory structure creation with proper error checking
+- Enhanced service installation with better failure detection
+- Added proper file cleanup and temporary file management
+- Improved system configuration with better hostname resolution handling
+- Added comprehensive installation summary with service port information
+
+### Fixed
+- Fixed potential issues with hostname resolution in `/etc/hosts`
+- Improved IPv6 disabling for better compatibility
+- Better handling of missing kernel headers with clear user instructions
+- Fixed potential file permission issues during installation
+- Improved timezone configuration reliability
+- Better error handling for network operations (wget, curl)
+- Fixed cleanup of installation scripts and temporary files
+
+### Documentation
+- Added comprehensive inline documentation throughout installation script
+- Clear function naming and purpose documentation
+- Added installation flow comments for better maintainability
+- Improved user-facing messages and instructions
+
 ## [2.0.1] - 2025-09-26
 
 ### Added
