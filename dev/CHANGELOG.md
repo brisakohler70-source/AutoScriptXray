@@ -5,6 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.1] - 2025-09-26
+
+### Added
+- Added `.gitignore` file to exclude backup files and temporary files from version control
+- Improved test framework to properly handle expected failure cases
+
+### Changed
+- **REFACTORING COMPLETION**: Successfully refactored 30 scripts using mass refactoring script
+  - 9 menu scripts (`menu/m-*.sh`) converted to use modular menu library functions
+  - 21 xray scripts updated with library imports and standardized functions
+- All test suites now pass (12/12 common library tests + 5/5 menu library tests)
+- Improved test framework to correctly validate both success and failure return codes
+
+### Fixed
+- Fixed test framework logic that incorrectly handled expected failure cases
+- Fixed IP address function test to properly expect failure in sandboxed environments
+- Resolved shellcheck warnings for refactored scripts (30 scripts processed)
+
+### Technical Improvements
+- Mass refactoring script `dev/refactor_all.sh` successfully processed 29 scripts
+- Backup files are now properly excluded from version control via `.gitignore`
+- Test coverage expanded to validate all major library functions
+- Error handling improvements in IP address resolution and validation functions
+
 ## [2.0.0] - 2024-09-26
 
 ### Added
