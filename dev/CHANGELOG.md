@@ -21,13 +21,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Fixed test framework logic that incorrectly handled expected failure cases
 - Fixed IP address function test to properly expect failure in sandboxed environments
-- Resolved shellcheck warnings for refactored scripts (30 scripts processed)
+- Applied automatic fixes to common shellcheck warnings across all xray scripts:
+  - Fixed SC2086: Added proper quoting around variables
+  - Fixed SC2162: Added `-r` flag to read commands
+  - Fixed SC2006: Replaced legacy backticks with `$()` notation
+  - Fixed SC2004: Removed unnecessary `$` in arithmetic expressions
+- Reduced shellcheck warnings significantly (only SC1091 info-level warnings remain for library imports)
 
 ### Technical Improvements
 - Mass refactoring script `dev/refactor_all.sh` successfully processed 29 scripts
 - Backup files are now properly excluded from version control via `.gitignore`
 - Test coverage expanded to validate all major library functions
 - Error handling improvements in IP address resolution and validation functions
+- Automated shellcheck warning fixes applied to improve code quality
 
 ## [2.0.0] - 2024-09-26
 

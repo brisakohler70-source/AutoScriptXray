@@ -37,7 +37,7 @@ echo -e ""
 echo -e "  • [NOTE] Press any key to back on menu"
 echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
 read -rp "   Input Username : " user
-if [ -z $user ]; then
+if [ -z "$user" ]; then
 m-vmess
 else
 exp=$(grep -wE "^### $user" "/etc/xray/config.json" | cut -d ' ' -f 3 | sort | uniq)
