@@ -1,89 +1,74 @@
 #!/bin/bash
 # Quick Setup | Script Setup Manager
-# Edition : Stable Edition 1.0
-# Author  : givps
+# Edition : Stable Edition 2.0 (Refactored)
+# Author  : givps (refactored)
 # The MIT License (MIT)
-# (C) Copyright 2023
+# (C) Copyright 2023-2024
 # =========================================
-# pewarna hidup
-RED='\033[0;31m'
-NC='\033[0m'
-GREEN='\033[0;32m'
-ORANGE='\033[0;33m'
-BLUE='\033[0;34m'
-PURPLE='\033[0;35m'
-CYAN='\033[0;36m'
-LIGHT='\033[0;37m'
-# ==========================================
-# Getting
-MYIP=$(wget -qO- ipv4.icanhazip.com);
-echo "Checking VPS"
-clear
-source /var/lib/ipvps.conf
-if [[ "$IP" = "" ]]; then
-domain=$(cat /etc/xray/domain)
-else
-domain=$IP
-fi
-tls="$(cat ~/log-install.txt | grep -w "Trojan WS TLS" | cut -d: -f2|sed 's/ //g')"
-ntls="$(cat ~/log-install.txt | grep -w "Trojan WS none TLS" | cut -d: -f2|sed 's/ //g')"
-until [[ $user =~ ^[a-zA-Z0-9_]+$ && ${user_EXISTS} == '0' ]]; do
-echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
-echo -e "\E[0;41;36m           TROJAN ACCOUNT          \E[0m"
-echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
 
-		read -rp "User: " -e user
-		user_EXISTS=$(grep -w $user /etc/xray/config.json | wc -l)
+# Source libraries
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=../dev/lib/common.sh
+source "$SCRIPT_DIR/../dev/lib/common.sh"
+# shellcheck source=../dev/lib/user_management.sh
+source "$SCRIPT_DIR/../dev/lib/user_management.sh"
 
-		if [[ ${user_EXISTS} == '1' ]]; then
-clear
-		echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
-		echo -e "\E[0;41;36m           TROJAN ACCOUNT          \E[0m"
-		echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
-			echo ""
-			echo "A client with the specified name was already created, please choose another name."
-			echo ""
-			echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
-			read -n 1 -s -r -p "Press any key to back on menu"
-			m-trojan
-		fi
-	done
+# Main function to add Trojan user
+add_trojan_user() {
+    local user expiry uuid domain tls ntls
+    local config_file="/etc/xray/config.json"
+    
+    # Get domain
+    domain=$(get_domain)
+    
+    # Get port information
+    tls=$(get_port_from_log "Trojan WS TLS" || echo "443")
+    ntls=$(get_port_from_log "Trojan WS none TLS" || echo "80")
+    
+    # Get username with validation
+    user=$(get_new_username "$config_file" "trojan")
+    
+    # Get expiry date
+    expiry=$(get_expiry_date)
+    
+    # Create user configuration
+    uuid=$(create_user_config "$user" "$expiry" "" "trojan" "$config_file")
+    
+    # Add user to xray configuration
+    sed -i "/#trojan$/a\\#&# $user $expiry\\},{\"password\": \"$uuid\",\"email\": \"$user\"" "$config_file"
+    sed -i "/#trojangrpc$/a\\#&# $user $expiry\\},{\"password\": \"$uuid\",\"email\": \"$user\"" "$config_file"
+    
+    # Restart xray service
+    if restart_xray; then
+        show_success "Xray service restarted successfully"
+    else
+        show_error "Failed to restart Xray service"
+    fi
+    
+    # Generate connection links
+    local trojanlink1="trojan://${uuid}@bug.com:$ntls?path=trojan-ws&security=none&host=${domain}&type=ws#${user}"
+    local trojanlink2="trojan://${uuid}@${domain}:$tls?mode=gun&security=tls&type=grpc&serviceName=trojan-grpc&sni=bug.com#${user}"
+    
+    # Display account information
+    show_account_info "$user" "$expiry" "$uuid" "$domain" "trojan" "$tls" "$ntls"
+    
+    # Log links
+    {
+        echo "Link TLS       : $trojanlink1"
+        echo "Link none TLS  : $trojanlink2"
+        echo "Link gRPC      : $trojanlink1"
+        echo "Expired On     : $expiry"
+        echo ""
+    } | tee -a /etc/log-create-trojan.log
+    
+    # Cleanup and return to menu
+    cleanup_temp_files
+    wait_for_keypress "Press any key to back on menu"
+    
+    if command -v m-trojan >/dev/null 2>&1; then
+        m-trojan
+    fi
+}
 
-uuid=$(cat /proc/sys/kernel/random/uuid)
-read -p "Expired (days): " masaaktif
-exp=`date -d "$masaaktif days" +"%Y-%m-%d"`
-sed -i '/#trojanws$/a\#! '"$user $exp"'\
-},{"password": "'""$uuid""'","email": "'""$user""'"' /etc/xray/config.json
-sed -i '/#trojangrpc$/a\#! '"$user $exp"'\
-},{"password": "'""$uuid""'","email": "'""$user""'"' /etc/xray/config.json
-
-trojanlink1="trojan://${uuid}@${domain}:${tls}?mode=gun&security=tls&type=grpc&serviceName=trojan-grpc&sni=bug.com#${user}"
-trojanlink="trojan://${uuid}@bug.com:${tls}?path=%2Ftrojan-ws&security=tls&host=${domain}&type=ws&sni=${domain}#${user}"
-trojanlink2="trojan://${uuid}@bug.com:${ntls}?path=%2Ftrojan-ws&security=none&host=${domain}&type=ws#${user}"
-systemctl restart xray
-clear
-echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m" | tee -a /etc/log-create-trojan.log
-echo -e "\E[0;41;36m           TROJAN ACCOUNT           \E[0m" | tee -a /etc/log-create-trojan.log
-echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m" | tee -a /etc/log-create-trojan.log
-echo -e "Remarks        : ${user}" | tee -a /etc/log-create-trojan.log
-echo -e "Host/IP        : ${domain}" | tee -a /etc/log-create-trojan.log
-echo -e "Wildcard       : (bug.com).${domain}" | tee -a /etc/log-create-trojan.log
-echo -e "Port TLS       : ${tls}" | tee -a /etc/log-create-trojan.log
-echo -e "Port none TLS  : ${ntls}" | tee -a /etc/log-create-trojan.log
-echo -e "Port gRPC      : ${tls}" | tee -a /etc/log-create-trojan.log
-echo -e "Key            : ${uuid}" | tee -a /etc/log-create-trojan.log
-echo -e "Path           : /trojan-ws" | tee -a /etc/log-create-trojan.log
-echo -e "ServiceName    : trojan-grpc" | tee -a /etc/log-create-trojan.log
-echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m" | tee -a /etc/log-create-trojan.log
-echo -e "Link TLS       : ${trojanlink}" | tee -a /etc/log-create-trojan.log
-echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m" | tee -a /etc/log-create-trojan.log
-echo -e "Link none TLS  : ${trojanlink2}" | tee -a /etc/log-create-trojan.log
-echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m" | tee -a /etc/log-create-trojan.log
-echo -e "Link gRPC      : ${trojanlink1}" | tee -a /etc/log-create-trojan.log
-echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m" | tee -a /etc/log-create-trojan.log
-echo -e "Expired On     : $exp" | tee -a /etc/log-create-trojan.log
-echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m" | tee -a /etc/log-create-trojan.log
-echo "" | tee -a /etc/log-create-trojan.log
-read -n 1 -s -r -p "Press any key to back on menu"
-
-m-trojan
+# Call main function
+add_trojan_user
