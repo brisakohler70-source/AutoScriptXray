@@ -5,19 +5,17 @@
 # The MIT License (MIT)
 # (C) Copyright 2023
 # =========================================
+
+# Source libraries
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=../dev/lib/common.sh
+source "$SCRIPT_DIR/../dev/lib/common.sh"
+# shellcheck source=../dev/lib/user_management.sh
+source "$SCRIPT_DIR/../dev/lib/user_management.sh"
+
 # pewarna hidup
-RED='\033[0;31m'
-NC='\033[0m'
-GREEN='\033[0;32m'
-ORANGE='\033[0;33m'
-BLUE='\033[0;34m'
-PURPLE='\033[0;35m'
-CYAN='\033[0;36m'
-LIGHT='\033[0;37m'
 # ==========================================
 # Getting
-MYIP=$(wget -qO- ipv4.icanhazip.com);
-echo "Checking VPS"
 clear
 source /var/lib/ipvps.conf
 if [[ "$IP" = "" ]]; then
@@ -51,11 +49,11 @@ m-vmess
 	done
 
 uuid=$(cat /proc/sys/kernel/random/uuid)
-read -p "Expired (days): " masaaktif
-exp=`date -d "$masaaktif days" +"%Y-%m-%d"`
+read -rp "Expired (days): " masaaktif
+exp=$(date -d "$masaaktif days" +"%Y-%m-%d")
 sed -i '/#vmess$/a\### '"$user $exp"'\
 },{"id": "'""$uuid""'","alterId": '"0"',"email": "'""$user""'"' /etc/xray/config.json
-exp=`date -d "$masaaktif days" +"%Y-%m-%d"`
+exp=$(date -d "$masaaktif days" +"%Y-%m-%d")
 sed -i '/#vmessgrpc$/a\### '"$user $exp"'\
 },{"id": "'""$uuid""'","alterId": '"0"',"email": "'""$user""'"' /etc/xray/config.json
 wstls=`cat<<EOF

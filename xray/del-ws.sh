@@ -5,19 +5,17 @@
 # The MIT License (MIT)
 # (C) Copyright 2023
 # =========================================
+
+# Source libraries
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=../dev/lib/common.sh
+source "$SCRIPT_DIR/../dev/lib/common.sh"
+# shellcheck source=../dev/lib/user_management.sh
+source "$SCRIPT_DIR/../dev/lib/user_management.sh"
+
 # pewarna hidup
-RED='\033[0;31m'
-NC='\033[0m'
-GREEN='\033[0;32m'
-ORANGE='\033[0;33m'
-BLUE='\033[0;34m'
-PURPLE='\033[0;35m'
-CYAN='\033[0;36m'
-LIGHT='\033[0;37m'
 # ==========================================
 # Getting
-MYIP=$(wget -qO- ipv4.icanhazip.com);
-echo "Checking VPS"
 clear
 NUMBER_OF_CLIENTS=$(grep -c -E "^### " "/etc/xray/config.json")
 if [[ ${NUMBER_OF_CLIENTS} == '0' ]]; then
@@ -39,7 +37,7 @@ echo -e ""
 echo -e "  • [NOTE] Press any key to back on menu"
 echo -e "\033[0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
 read -rp "   Input Username : " user
-if [ -z $user ]; then
+if [ -z "$user" ]; then
 m-vmess
 else
 exp=$(grep -wE "^### $user" "/etc/xray/config.json" | cut -d ' ' -f 3 | sort | uniq)
